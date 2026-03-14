@@ -30,9 +30,10 @@ systemctl restart redis-server
 
 # ---- Install Go ----
 echo "[4/7] Installing Go..."
+apt-get install -y -qq wget curl
 GO_VERSION="1.23.4"
 if ! command -v go &> /dev/null; then
-    wget -q "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -O /tmp/go.tar.gz
+    curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -o /tmp/go.tar.gz
     rm -rf /usr/local/go
     tar -C /usr/local -xzf /tmp/go.tar.gz
     rm /tmp/go.tar.gz
