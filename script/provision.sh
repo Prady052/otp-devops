@@ -58,12 +58,23 @@ else
 fi
 
 # ---- Build backend ----
-echo "[6/7] Building backend..."
+echo "[6/8] Building backend..."
 cd "$APP_DIR/backend"
 /usr/local/go/bin/go build -o /usr/local/bin/otp-server ./cmd/server
 
+# ---- Build frontend ----
+echo "[7/8] Building frontend..."
+# Install Node.js 20 via NodeSource
+if ! command -v node &> /dev/null; then
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    apt-get install -y -qq nodejs
+fi
+cd "$APP_DIR/frontend"
+npm ci --silent
+npm run build
+
 # ---- Create systemd service ----
-echo "[7/7] Setting up systemd service..."
+echo "[8/8] Setting up systemd service..."
 cat > /etc/systemd/system/otp-server.service <<EOF
 [Unit]
 Description=OTP DevOps Server
