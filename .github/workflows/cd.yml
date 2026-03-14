@@ -8,55 +8,33 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to LXC
-    runs-on: ubuntu-latest
+    name: Deploy to LXC (Self-Hosted)
+    runs-on: self-hosted
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download backend artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: otp-server
-          path: ./artifacts
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Make scripts executable
+        run: chmod +x script/deploy.sh script/provision.sh
 
-      - name: Download frontend artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: ./artifacts/frontend-dist
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            cd /opt/otp-devops
-            git pull origin main
-            cd script
-            chmod +x deploy.sh provision.sh
-            sudo ./deploy.sh
+      - name: Run deployment
+        run: sudo ./script/deploy.sh
 
       - name: Health check
         run: |
           echo "Waiting for deployment to stabilize..."
-          sleep 15
-          HEALTH_URL="http://${{ secrets.DEPLOY_HOST }}/api/health"
+          sleep 10
+          CONTAINER_IP=$(sudo lxc-info -n otp-devops -iH | head -1)
+          HEALTH_URL="http://$CONTAINER_IP:8080/api/health"
           for i in $(seq 1 10); do
             if curl -sf "$HEALTH_URL" > /dev/null 2>&1; then
               echo "✓ Health check passed!"
               exit 0
             fi
             echo "Attempt $i/10 — waiting..."
-            sleep 5
+            sleep 3
           done
           echo "✕ Health check failed"
           exit 1
