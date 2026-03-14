@@ -48,10 +48,11 @@ apt-get install -y -qq git
 APP_DIR="/opt/otp-devops"
 REPO_URL="${REPO_URL:-https://github.com/Prady052/otp-devops.git}"
 
-if [ -d "$APP_DIR" ]; then
+if [ -d "$APP_DIR/.git" ]; then
     cd "$APP_DIR"
     git pull --ff-only
 else
+    rm -rf "$APP_DIR"
     git clone "$REPO_URL" "$APP_DIR"
     cd "$APP_DIR"
 fi
