@@ -13,16 +13,17 @@ function App() {
   const [appState, setAppState] = useState(STATES.IDLE)
   const [email, setEmail] = useState('')
   const [otpLength, setOtpLength] = useState(6)
-  const [otpDigits, setOtpDigits] = useState([])
+  const [otpDigits, setOtpDigits] = useState(() => new Array(6).fill(''))
   const [devOtp, setDevOtp] = useState('')
   const [message, setMessage] = useState({ text: '', type: '' })
   const [countdown, setCountdown] = useState(0)
   const digitRefs = useRef([])
 
-  // Initialize OTP digit array when length changes
-  useEffect(() => {
-    setOtpDigits(new Array(otpLength).fill(''))
-  }, [otpLength])
+  // Reset OTP digit array when length changes via the select dropdown
+  const handleOtpLengthChange = (newLength) => {
+    setOtpLength(newLength)
+    setOtpDigits(new Array(newLength).fill(''))
+  }
 
   // Countdown timer for resend
   useEffect(() => {
@@ -267,7 +268,7 @@ function App() {
                     id="otp-length"
                     className="form-select"
                     value={otpLength}
-                    onChange={(e) => setOtpLength(Number(e.target.value))}
+                    onChange={(e) => handleOtpLengthChange(Number(e.target.value))}
                     disabled={appState === STATES.SENDING}
                   >
                     {[4, 5, 6, 7, 8].map(n => (
